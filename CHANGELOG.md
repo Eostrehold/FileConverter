@@ -3,6 +3,7 @@
 ## Version 2.2
 
 - New: AMD AMF hardware acceleration option for MP4/MKV H.264 conversions (thanks to bharatvansh).
+- New: Intel Quick Sync Video (QSV) hardware acceleration option for MP4/MKV H.264 conversions.
 - New: Support new image input and output format: avif (github issue #619) (thanks to Techpotato1).
 - New: Indonesian translation (thanks to itsmefdil).
 - New: Urdu translation (thanks to hamzaharoon1314).

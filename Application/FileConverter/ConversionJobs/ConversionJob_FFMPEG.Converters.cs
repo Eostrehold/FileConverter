@@ -50,6 +50,9 @@ namespace FileConverter.ConversionJobs
                     case Helpers.HardwareAccelerationMode.CUDA:
                         scaleArgs = string.Format("scale_cuda=trunc(iw*{0}/2)*2:trunc(ih*{0}/2)*2:format=yuv420p", scaleFactor.ToString("#.##", CultureInfo.InvariantCulture));
                         break;
+                    case Helpers.HardwareAccelerationMode.QSV:
+                        scaleArgs = string.Format("scale=trunc(iw*{0}/2)*2:trunc(ih*{0}/2)*2,format=nv12", scaleFactor.ToString("#.##", CultureInfo.InvariantCulture));
+                        break;
                     default:
                         scaleArgs = string.Format("scale=trunc(iw*{0}/2)*2:trunc(ih*{0}/2)*2", scaleFactor.ToString("#.##", CultureInfo.InvariantCulture));
                         break;
@@ -104,12 +107,13 @@ namespace FileConverter.ConversionJobs
                 transformArgs += rotationArgs;
             }
 
-            if (hwAccel != Helpers.HardwareAccelerationMode.CUDA && (conversionPreset.OutputType == OutputType.Mkv || conversionPreset.OutputType == OutputType.Mp4))
+            if (hwAccel != Helpers.HardwareAccelerationMode.CUDA && hwAccel != Helpers.HardwareAccelerationMode.QSV && (conversionPreset.OutputType == OutputType.Mkv || conversionPreset.OutputType == OutputType.Mp4))
             {
                 // For H.264 in MP4/MKV, force yuv420p for broad player compatibility:
                 // http://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
                 // - Software encoding and non-CUDA hardware (e.g., AMF) come through this path.
                 // - CUDA is excluded here because the scale_cuda path above already sets format=yuv420p.
+                // - QSV is excluded here because the QSV path above already sets format=nv12.
                 transformArgs += (transformArgs.Length > 0 ? "," : string.Empty) + "format=yuv420p";
                 //// TODO: maybe there should be an option for this on the settings?
             }
@@ -388,6 +392,42 @@ namespace FileConverter.ConversionJobs
                 case VideoEncodingSpeed.Slower:
                 case VideoEncodingSpeed.VerySlow:
                     return "quality";
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(encodingSpeed), encodingSpeed, "Unknown H264 encoding speed.");
+        }
+
+        /// <summary>
+        /// Convert video encoding speed to QSV preset.
+        /// </summary>
+        /// <param name="encodingSpeed">The encoding speed.</param>
+        /// <returns>The QSV preset.</returns>
+        private string H264EncodingSpeedToQSVPreset(VideoEncodingSpeed encodingSpeed)
+        {
+            switch (encodingSpeed)
+            {
+                case VideoEncodingSpeed.UltraFast:
+                case VideoEncodingSpeed.SuperFast:
+                case VideoEncodingSpeed.VeryFast:
+                    return "veryfast";
+
+                case VideoEncodingSpeed.Faster:
+                    return "faster";
+
+                case VideoEncodingSpeed.Fast:
+                    return "fast";
+
+                case VideoEncodingSpeed.Medium:
+                    return "medium";
+
+                case VideoEncodingSpeed.Slow:
+                    return "slow";
+
+                case VideoEncodingSpeed.Slower:
+                    return "slower";
+
+                case VideoEncodingSpeed.VerySlow:
+                    return "veryslow";
             }
 
             throw new ArgumentOutOfRangeException(nameof(encodingSpeed), encodingSpeed, "Unknown H264 encoding speed.");

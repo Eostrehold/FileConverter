@@ -598,6 +598,9 @@ use maj for uppercase version</value>
   <data name="HardwareAccelerationModeAMFName" xml:space="preserve">
     <value>Advanced Media Framework (AMD)</value>
   </data>
+  <data name="HardwareAccelerationModeQSVName" xml:space="preserve">
+    <value>Quick Sync Video (Intel)</value>
+  </data>
   <data name="HardwareAccelerationModeCUDAName" xml:space="preserve">
     <value>CUDA (Nvidia)</value>
   </data>

@@ -291,6 +291,12 @@ namespace FileConverter.ConversionJobs
                                 videoCodec = "h264_amf";
                                 videoCodecArgs = $"-usage transcoding -quality {this.H264EncodingSpeedToAMFQuality(videoEncodingSpeed)} -qp_i {amfQP} -qp_p {amfQP} -qp_b {amfBFrameQP}";
                                 break;
+
+                            case Helpers.HardwareAccelerationMode.QSV:
+                                int qsvGlobalQuality = this.H264QualityToCRF(videoEncodingQuality);
+                                videoCodec = "h264_qsv";
+                                videoCodecArgs = $"-preset {this.H264EncodingSpeedToQSVPreset(videoEncodingSpeed)} -global_quality {qsvGlobalQuality}";
+                                break;
                         }
 
                         string encoderArgs = $"-c:v {videoCodec} {videoCodecArgs} {audioArgs} {videoFilteringArgs}";
