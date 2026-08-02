@@ -781,6 +781,15 @@ namespace FileConverter.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Quick Sync Video (Intel).
+        /// </summary>
+        public static string HardwareAccelerationModeQSVName {
+            get {
+                return ResourceManager.GetString("HardwareAccelerationModeQSVName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CUDA (Nvidia).
         /// </summary>
         public static string HardwareAccelerationModeCUDAName {
