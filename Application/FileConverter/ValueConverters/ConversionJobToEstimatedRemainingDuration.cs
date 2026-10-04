@@ -40,6 +40,11 @@ namespace FileConverter.ValueConverters
             }
 
             double remainingTimeInSeconds = (1 - progress) * elapsedTime.TotalSeconds / progress;
+            if (remainingTimeInSeconds < 0)
+            {
+                return string.Empty;
+            }
+
             TimeSpan remainingTime = TimeSpan.FromSeconds(Math.Floor(remainingTimeInSeconds));
             return "~" + remainingTime.ToString("g");
         }

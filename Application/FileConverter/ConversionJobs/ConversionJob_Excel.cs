@@ -48,8 +48,14 @@ namespace FileConverter.ConversionJobs
                 Excel.Worksheet worksheet = sheet as Excel.Worksheet;
                 if (worksheet != null)
                 {
-                    pagesCount = worksheet.PageSetup.Pages.Count;
+                    pagesCount += worksheet.PageSetup.Pages.Count;
                 }
+            }
+
+            if (pagesCount == 0)
+            {
+                // Some workbooks report no printable pages; fall back to one output file so the conversion can still produce a result.
+                pagesCount = 1;
             }
 
             return pagesCount;

@@ -140,9 +140,18 @@ namespace FileConverter
                 else
                 {
                     Debug.Log("Wait for the end of the installer download.");
-                    while (upgradeService.UpgradeVersionDescription.InstallerDownloadInProgress)
+                    const int downloadWaitTimeoutMs = 300000;
+                    System.Diagnostics.Stopwatch downloadWaitStopwatch = System.Diagnostics.Stopwatch.StartNew();
+                    while (upgradeService.UpgradeVersionDescription.InstallerDownloadInProgress &&
+                           downloadWaitStopwatch.ElapsedMilliseconds < downloadWaitTimeoutMs)
                     {
                         Thread.Sleep(1000);
+                    }
+
+                    if (upgradeService.UpgradeVersionDescription.InstallerDownloadInProgress)
+                    {
+                        Debug.LogError("The installer download is taking too long, upgrade aborted. Try again later.");
+                        return;
                     }
 
                     string installerPath = upgradeService.UpgradeVersionDescription.InstallerPath;
@@ -400,7 +409,14 @@ namespace FileConverter
             {
                 IUpgradeService upgradeService = Ioc.Default.GetRequiredService<IUpgradeService>();
                 upgradeService.NewVersionAvailable += this.UpgradeService_NewVersionAvailable;
-                upgradeService.CheckForUpgrade();
+                try
+                {
+                    upgradeService.CheckForUpgrade();
+                }
+                catch (Exception exception)
+                {
+                    Debug.Log($"Upgrade check failed: {exception.Message}.");
+                }
             }
 
             ConversionPreset conversionPreset = null;

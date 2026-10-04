@@ -179,6 +179,7 @@ namespace FileConverter.ConversionJobs
                 this.compressionConversionJob.State != ConversionState.Failed)
             {
                 this.Progress = this.compressionConversionJob.Progress;
+                Thread.Sleep(50);
             }
 
             if (this.compressionConversionJob.State == ConversionState.Failed)

@@ -86,6 +86,20 @@ namespace FileConverter.ConversionJobs
             this.FillFFMpegArgumentsList();
         }
 
+        private string SanitizeFFMpegCustomCommand(string customCommand)
+        {
+            string sanitizedCommand = customCommand ?? string.Empty;
+
+            // Double quotes would allow the command to escape out of the quoted input/output paths, forbid them.
+            if (sanitizedCommand.Contains("\""))
+            {
+                sanitizedCommand = sanitizedCommand.Replace("\"", string.Empty);
+                Diagnostics.Debug.Log("Double quotes have been removed from the ffmpeg custom command.");
+            }
+
+            return sanitizedCommand;
+        }
+
         protected virtual void FillFFMpegArgumentsList()
         {
             const string baseArgs = "-n -progress pipe:1";
@@ -94,7 +108,7 @@ namespace FileConverter.ConversionJobs
             if (customCommandEnabled)
             {
                 // Custom command override other settings.
-                string customCommand = this.ConversionPreset.GetSettingsValue<string>(ConversionPreset.ConversionSettingKeys.FFMPEGCustomCommand) ?? string.Empty;
+                string customCommand = this.SanitizeFFMpegCustomCommand(this.ConversionPreset.GetSettingsValue<string>(ConversionPreset.ConversionSettingKeys.FFMPEGCustomCommand));
 
                 string arguments = $"{baseArgs} -i \"{this.InputFilePath}\" {customCommand} \"{this.OutputFilePath}\"";
                 this.ffmpegArgumentStringByPass.Add(new FFMpegPass(arguments));

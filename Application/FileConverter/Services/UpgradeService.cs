@@ -68,6 +68,11 @@ namespace FileConverter.Services
                 Diagnostics.Debug.Log($"Failed to check upgrade: {exception.Message}.");
             }
 
+            if (task == null)
+            {
+                return null;
+            }
+
             UpgradeVersionDescription versionDescription = await task;
 
             if (versionDescription == null)
@@ -236,7 +241,6 @@ namespace FileConverter.Services
 
                 this.UpgradeVersionDescription.InstallerDownloadProgress = 100;
                 this.UpgradeVersionDescription.InstallerDownloadInProgress = false;
-                this.UpgradeVersionDescription = null;
             }
             catch (Exception exception)
             {
@@ -250,7 +254,10 @@ namespace FileConverter.Services
         
         private void WebClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs eventArgs)
         {
-            this.UpgradeVersionDescription.InstallerDownloadProgress = eventArgs.ProgressPercentage;
+            if (this.UpgradeVersionDescription != null)
+            {
+                this.UpgradeVersionDescription.InstallerDownloadProgress = eventArgs.ProgressPercentage;
+            }
         }
     }
 }

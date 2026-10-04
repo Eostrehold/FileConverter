@@ -376,12 +376,22 @@ namespace FileConverter
             }
 
             Type type = typeof(T);
-            if (type.IsEnum)
-            {
-                return (T)Enum.Parse(type, settingsValue);
-            }
 
-            return (T)Convert.ChangeType(settingsValue, type, NumberFormatInfo.InvariantInfo);
+            try
+            {
+                if (type.IsEnum)
+                {
+                    return (T)Enum.Parse(type, settingsValue);
+                }
+
+                return (T)Convert.ChangeType(settingsValue, type, NumberFormatInfo.InvariantInfo);
+            }
+            catch (Exception exception)
+            {
+                // Corrupted or unexpected setting values should not abort the conversion, fall back to the default value.
+                Diagnostics.Debug.Log($"Can't convert settings value '{settingsKey}' = '{settingsValue}' to {type.Name}: {exception.Message}");
+                return default(T);
+            }
         }
 
         public bool IsRelevantSetting(string settingsKey)

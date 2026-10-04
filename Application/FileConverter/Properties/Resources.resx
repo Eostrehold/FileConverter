@@ -313,6 +313,9 @@ use maj for uppercase version</value>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="SettingsUnsavedChangesQuestion" xml:space="preserve">
+    <value>There are unsaved changes or validation errors in the settings. Do you really want to close this window and discard the changes?</value>
+  </data>
   <data name="SettingsButtonTooltip" xml:space="preserve">
     <value>Settings</value>
   </data>

@@ -54,7 +54,12 @@ namespace FileConverter
         {
             Match match = PathHelpers.cdaTrackNumberRegex.Match(path);
             string stringNumber = match.Groups[1].Value;
-            return int.Parse(stringNumber);
+            if (!int.TryParse(stringNumber, out int trackNumber))
+            {
+                throw new FormatException($"Can't retrieve the CDA track number from path '{path}'.");
+            }
+
+            return trackNumber;
         }
 
         public static bool IsPathValid(string path)

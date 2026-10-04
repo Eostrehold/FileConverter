@@ -109,7 +109,7 @@ namespace FileConverter.ViewModels
 
         private void ConversionJob_PropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
         {
-            if (eventArgs.PropertyName != "State" && eventArgs.PropertyName != "Progress")
+            if (eventArgs.PropertyName != nameof(ConversionJob.State) && eventArgs.PropertyName != nameof(ConversionJob.Progress))
             {
                 return;
             }

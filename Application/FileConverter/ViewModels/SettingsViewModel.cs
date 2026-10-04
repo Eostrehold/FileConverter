@@ -459,11 +459,29 @@ namespace FileConverter.ViewModels
 
         private void CloseSettings(CancelEventArgs args)
         {
+            bool windowIsAlreadyClosing = args != null;
+
+            // When the user closes the window without using the save mechanism (X button), ask for confirmation if there is unsaved data.
+            if (windowIsAlreadyClosing && !this.saveCommand.CanExecute(null))
+            {
+                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(
+                    Properties.Resources.SettingsUnsavedChangesQuestion,
+                    Properties.Resources.Settings,
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (messageBoxResult == MessageBoxResult.No)
+                {
+                    args.Cancel = true;
+                    return;
+                }
+            }
+
             ISettingsService settingsService = Ioc.Default.GetRequiredService<ISettingsService>();
             settingsService.RevertSettings();
 
             INavigationService navigationService = Ioc.Default.GetRequiredService<INavigationService>();
-            navigationService.Close(Pages.Settings, args != null);
+            navigationService.Close(Pages.Settings, windowIsAlreadyClosing);
         }
 
         private bool CanSaveSettings()
@@ -613,7 +631,15 @@ namespace FileConverter.ViewModels
                 }
 
                 List<ConversionPreset> presetsToImport = new List<ConversionPreset>();
-                XmlHelpers.LoadFromFile("Presets", openFileDialog.FileName, out presetsToImport);
+                try
+                {
+                    XmlHelpers.LoadFromFile("Presets", openFileDialog.FileName, out presetsToImport);
+                }
+                catch (Exception exception)
+                {
+                    Diagnostics.Debug.LogError($"Can't import presets from file '{openFileDialog.FileName}': {exception.Message}");
+                    return;
+                }
 
                 // Add imported preset to preset tree.
                 bool itemSelected = false;

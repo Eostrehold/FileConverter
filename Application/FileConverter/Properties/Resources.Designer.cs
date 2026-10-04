@@ -1254,7 +1254,16 @@ namespace FileConverter.Properties {
                 return ResourceManager.GetString("SettingsButtonTooltip", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to There are unsaved changes or validation errors in the settings. Do you really want to close this window and discard the changes?.
+        /// </summary>
+        public static string SettingsUnsavedChangesQuestion {
+            get {
+                return ResourceManager.GetString("SettingsUnsavedChangesQuestion", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Stereo.
         /// </summary>

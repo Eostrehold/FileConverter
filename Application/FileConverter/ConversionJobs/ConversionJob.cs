@@ -22,6 +22,7 @@ namespace FileConverter.ConversionJobs
 
         private readonly string initialInputPath;
         private int currentOutputFilePathIndex;
+        private bool inputFileRenamedToPreserveOutputName;
 
         public ConversionJob()
         {
@@ -101,7 +102,25 @@ namespace FileConverter.ConversionJobs
             {
                 this.state = value;
                 this.NotifyPropertyChanged();
-                Application.Current.Dispatcher.Invoke(() => this.cancelCommand?.NotifyCanExecuteChanged());
+                this.NotifyCancelCommandOnDispatcher();
+            }
+        }
+
+        private void NotifyCancelCommandOnDispatcher()
+        {
+            System.Windows.Application dispatcherApplication = Application.Current;
+            if (dispatcherApplication == null)
+            {
+                return;
+            }
+
+            try
+            {
+                dispatcherApplication.Dispatcher.BeginInvoke((Action)(() => this.cancelCommand?.NotifyCanExecuteChanged()));
+            }
+            catch (Exception exception)
+            {
+                Debug.Log($"Can't notify cancel command: {exception.Message}.");
             }
         }
 
@@ -262,7 +281,18 @@ namespace FileConverter.ConversionJobs
                         string inputExtension = System.IO.Path.GetExtension(this.InputFilePath);
                         string pathWithoutExtension = this.InputFilePath.Substring(0, this.InputFilePath.Length - inputExtension.Length);
                         this.InputFilePath = PathHelpers.GenerateUniquePath(pathWithoutExtension + "_TEMP" + inputExtension);
-                        System.IO.File.Move(this.initialInputPath, this.InputFilePath);
+                        try
+                        {
+                            System.IO.File.Move(this.initialInputPath, this.InputFilePath);
+                            this.inputFileRenamedToPreserveOutputName = true;
+                        }
+                        catch (Exception moveException)
+                        {
+                            this.InputFilePath = this.initialInputPath;
+                            this.ConversionFailed(Properties.Resources.ErrorFailToGenerateUniqueOutputPath);
+                            Debug.Log($"Can't rename input file to preserve output name: {moveException.Message}");
+                            return;
+                        }
                     }
                 }
 
@@ -395,6 +425,8 @@ namespace FileConverter.ConversionJobs
         {
             Debug.Log("Conversion Failed.");
 
+            this.RestoreRenamedInputFile();
+
             for (int index = 0; index < this.OutputFilePaths.Length; index++)
             {
                 string outputFilePath = this.OutputFilePaths[index];
@@ -410,6 +442,35 @@ namespace FileConverter.ConversionJobs
                     Debug.Log($"Can't delete file '{outputFilePath}' after conversion job failure.");
                     Debug.Log($"An exception as been thrown: {exception}.");
                 }
+            }
+        }
+
+        private void RestoreRenamedInputFile()
+        {
+            if (!this.inputFileRenamedToPreserveOutputName)
+            {
+                return;
+            }
+
+            this.inputFileRenamedToPreserveOutputName = false;
+
+            try
+            {
+                if (System.IO.File.Exists(this.InputFilePath) && !System.IO.File.Exists(this.initialInputPath))
+                {
+                    System.IO.File.Move(this.InputFilePath, this.initialInputPath);
+                    this.InputFilePath = this.initialInputPath;
+                    Debug.Log($"Input file restored: '{this.initialInputPath}'.");
+                }
+                else
+                {
+                    Debug.Log($"Can't restore input file '{this.InputFilePath}' to '{this.initialInputPath}'.");
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.Log($"Can't restore input file '{this.InputFilePath}' to '{this.initialInputPath}'.");
+                Debug.Log($"An exception has been thrown: {exception}.");
             }
         }
 

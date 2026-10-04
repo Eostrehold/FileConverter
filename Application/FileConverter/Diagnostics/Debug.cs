@@ -20,8 +20,22 @@ namespace FileConverter.Diagnostics
 
         static Debug()
         {
-            Debug.mainThreadId = Thread.CurrentThread.ManagedThreadId;
+            try
+            {
+                Debug.InitializeDiagnosticsFolder();
+            }
+            catch (Exception exception)
+            {
+                // Never crash the application because of diagnostics initialization, fall back to a temp folder.
+                Debug.diagnosticsFolderPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "FileConverter-Diagnostics");
+                Console.Error.WriteLine($"Failed to initialize diagnostics folder: {exception}");
+            }
 
+            Debug.mainThreadId = Thread.CurrentThread.ManagedThreadId;
+        }
+
+        private static void InitializeDiagnosticsFolder()
+        {
             string path = FileConverterExtension.PathHelpers.GetUserDataFolderPath;
 
             // Delete old diagnostics folder (1 day).
@@ -38,7 +52,7 @@ namespace FileConverter.Diagnostics
             }
 
             string diagnosticsFolderName = $"Diagnostics-{DateTime.Now.Hour}h{DateTime.Now.Minute}m{DateTime.Now.Second}s";
-            
+
             Debug.diagnosticsFolderPath = Path.Combine(path, diagnosticsFolderName);
             Debug.diagnosticsFolderPath = PathHelpers.GenerateUniquePath(Debug.diagnosticsFolderPath);
             Directory.CreateDirectory(Debug.diagnosticsFolderPath);

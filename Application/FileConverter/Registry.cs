@@ -12,6 +12,7 @@ namespace FileConverter
         private static Registry instance;
 
         private Dictionary<string, string> registryEntries = new Dictionary<string, string>();
+        private readonly object registryLock = new object();
 
         ~Registry()
         {
@@ -24,20 +25,21 @@ namespace FileConverter
         {
             get
             {
-                Entry[] entries = new Entry[this.registryEntries.Count];
-                int index = 0;
-                foreach (KeyValuePair<string, string> kvp in this.registryEntries)
+                lock (this.registryLock)
                 {
-                    if (kvp.Value == null)
+                    List<Entry> entries = new List<Entry>();
+                    foreach (KeyValuePair<string, string> kvp in this.registryEntries)
                     {
-                        continue;
+                        if (kvp.Value == null)
+                        {
+                            continue;
+                        }
+
+                        entries.Add(new Entry(kvp.Key, kvp.Value));
                     }
 
-                    entries[index] = new Entry(kvp.Key, kvp.Value);
-                    index++;
+                    return entries.ToArray();
                 }
-
-                return entries;
             }
 
             set
@@ -94,9 +96,13 @@ namespace FileConverter
         {
             Registry registry = Registry.Instance;
 
-            if (!registry.registryEntries.TryGetValue(key, out string stringValue))
+            string stringValue;
+            lock (registry.registryLock)
             {
-                return defaultValue;
+                if (!registry.registryEntries.TryGetValue(key, out stringValue))
+                {
+                    return defaultValue;
+                }
             }
 
             try
@@ -116,15 +122,13 @@ namespace FileConverter
         {
             Registry registry = Registry.Instance;
 
-            if (!registry.registryEntries.ContainsKey(key))
-            {
-                registry.registryEntries.Add(key, null);
-            }
-
             try
             {
                 string stringValue = (string)System.Convert.ChangeType(value, typeof(string));
-                registry.registryEntries[key] = stringValue;
+                lock (registry.registryLock)
+                {
+                    registry.registryEntries[key] = stringValue;
+                }
             }
             catch (Exception exception)
             {
