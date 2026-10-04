@@ -20,21 +20,31 @@ namespace FileConverter.Diagnostics
 
         static Debug()
         {
+            Debug.mainThreadId = Thread.CurrentThread.ManagedThreadId;
+
             try
             {
-                Debug.InitializeDiagnosticsFolder();
+                Debug.diagnosticsFolderPath = Debug.CreateDiagnosticsFolder();
+                Debug.Log($"Diagnostics stored at path '{Debug.diagnosticsFolderPath}'");
             }
             catch (Exception exception)
             {
                 // Never crash the application because of diagnostics initialization, fall back to a temp folder.
                 Debug.diagnosticsFolderPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "FileConverter-Diagnostics");
+                try
+                {
+                    Directory.CreateDirectory(Debug.diagnosticsFolderPath);
+                }
+                catch
+                {
+                    // Diagnostics will be unavailable, but the application must keep running.
+                }
+
                 Console.Error.WriteLine($"Failed to initialize diagnostics folder: {exception}");
             }
-
-            Debug.mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
-        private static void InitializeDiagnosticsFolder()
+        private static string CreateDiagnosticsFolder()
         {
             string path = FileConverterExtension.PathHelpers.GetUserDataFolderPath;
 
@@ -52,12 +62,10 @@ namespace FileConverter.Diagnostics
             }
 
             string diagnosticsFolderName = $"Diagnostics-{DateTime.Now.Hour}h{DateTime.Now.Minute}m{DateTime.Now.Second}s";
+            string diagnosticsFolderPath = PathHelpers.GenerateUniquePath(Path.Combine(path, diagnosticsFolderName));
+            Directory.CreateDirectory(diagnosticsFolderPath);
 
-            Debug.diagnosticsFolderPath = Path.Combine(path, diagnosticsFolderName);
-            Debug.diagnosticsFolderPath = PathHelpers.GenerateUniquePath(Debug.diagnosticsFolderPath);
-            Directory.CreateDirectory(Debug.diagnosticsFolderPath);
-
-            Debug.Log($"Diagnostics stored at path '{Debug.diagnosticsFolderPath}'");
+            return diagnosticsFolderPath;
         }
 
         public static int FirstErrorCode

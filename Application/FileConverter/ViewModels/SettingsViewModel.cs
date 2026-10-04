@@ -464,13 +464,13 @@ namespace FileConverter.ViewModels
             // When the user closes the window without using the save mechanism (X button), ask for confirmation if there is unsaved data.
             if (windowIsAlreadyClosing && !this.saveCommand.CanExecute(null))
             {
-                MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(
+                System.Windows.MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show(
                     Properties.Resources.SettingsUnsavedChangesQuestion,
                     Properties.Resources.Settings,
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Question);
 
-                if (messageBoxResult == MessageBoxResult.No)
+                if (messageBoxResult == System.Windows.MessageBoxResult.No)
                 {
                     args.Cancel = true;
                     return;
